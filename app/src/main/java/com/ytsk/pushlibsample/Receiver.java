@@ -1,6 +1,7 @@
 package com.ytsk.pushlibsample;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.ytsk.pushlib.TanMsg;
@@ -11,6 +12,7 @@ public class Receiver extends TanPushReceiver {
 
     @Override
     protected void onToken(Context context, String token) {
+        Log.i("token",token);
         Toast.makeText(context,"token: "+token,Toast.LENGTH_SHORT).show();
     }
     @Override

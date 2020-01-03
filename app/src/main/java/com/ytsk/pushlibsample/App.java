@@ -1,8 +1,13 @@
 package com.ytsk.pushlibsample;
 
 import android.app.Application;
+import android.content.Context;
 
-import com.ytsk.pushlib.PushManager;
+import com.huawei.agconnect.config.AGConnectServicesConfig;
+import com.huawei.agconnect.config.LazyInputStream;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class App extends Application {
 
@@ -10,16 +15,21 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        PushManager.MI_PUSH_APP_ID="2882303761517914422";
-//        PushManager.MI_PUSH_APP_KEY="5941791473422";
-//        PushManager.MEIZU_PUSH_APP_ID="117548";
-//        PushManager.MEIZU_PUSH_APP_KEY="fcf080a3f0fe4ce8b6abe1f831329566";
-        PushManager.initPush(this);
+
     }
 
     @Override
-    public void onTerminate() {
-        super.onTerminate();
-        PushManager.onTerminate();
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        AGConnectServicesConfig config = AGConnectServicesConfig.fromContext(base);
+        config.overlayWith(new LazyInputStream(base){
+            public InputStream get(Context context) {
+                try {
+                    return context.getAssets().open("agconnect-services.json");
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+        });
     }
 }

@@ -1,12 +1,13 @@
 package com.ytsk.pushlib;
 
 import android.app.ActivityManager;
-import android.app.Application;
 import android.content.Context;
 import android.os.Process;
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.huawei.android.hms.agent.HMSAgent;
+import com.huawei.agconnect.config.AGConnectServicesConfig;
+import com.huawei.hms.aaid.HmsInstanceId;
 import com.meizu.cloud.pushsdk.util.MzSystemUtils;
 import com.tencent.android.tpush.XGPushConfig;
 import com.tencent.android.tpush.XGPushManager;
@@ -24,7 +25,7 @@ public class PushManager {
     private static String MEIZU_PUSH_APP_ID;
     private static String MEIZU_PUSH_APP_KEY;
 
-    public static void initPush(Application application) {
+    public static void initPush(Context application) {
         if (application == null)
             throw new NullPointerException("application is null");
         MI_PUSH_APP_ID = PushUtil.readValMetaDataFromApplication(application, "MI_PUSH_APP_ID");
@@ -40,7 +41,8 @@ public class PushManager {
         if (MEIZU_PUSH_APP_KEY == null)
             throw new NullPointerException("meizu push app key is null");
         if (PushUtil.sysType() == PushUtil.SYS_HUAWEI) {
-            HMSAgent.init(application);
+//            HMSAgent.init(application);
+            getToken(application);
         } else if (PushUtil.sysType() == PushUtil.SYS_XIAOMI) {
             // 注册push服务，注册成功后会向DemoMessageReceiver发送广播
             // 可以从DemoMessageReceiver的onCommandResult方法中MiPushCommandMessage对象参数中获取注册信息
@@ -78,6 +80,35 @@ public class PushManager {
         }
     }
 
+    private static String TAG = "huawei";
+
+    /**
+     * 获取token
+     */
+    private static void getToken(final Context context) {
+        Log.i(TAG, "get token: begin");
+
+        // get token
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    String appId = AGConnectServicesConfig.fromContext(context)
+                            .getString("client/app_id");
+                    String pushtoken = HmsInstanceId.getInstance(context)
+                            .getToken(appId, "HCM");
+                    if (!TextUtils.isEmpty(pushtoken)) {
+                        Log.i(TAG, "get token:" + pushtoken);
+                        PushUtil.sendBroadcast(context,pushtoken);
+                    }
+                } catch (Exception e) {
+                    Log.i(TAG, "getToken failed, " + e);
+
+                }
+            }
+        }.start();
+    }
+
 
     public static void reInitMiPush(Context ctx) {
         if (ctx == null) return;
@@ -97,10 +128,10 @@ public class PushManager {
         return false;
     }
 
-    public static void onTerminate() {
-        if (PushUtil.sysType() == PushUtil.SYS_HUAWEI) {
-            HMSAgent.destroy();
-        }
-    }
+//    public static void onTerminate() {
+//        if (PushUtil.sysType() == PushUtil.SYS_HUAWEI) {
+//            HMSAgent.destroy();
+//        }
+//    }
 
 }

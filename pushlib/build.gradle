@@ -1,13 +1,26 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
+apply plugin: 'com.huawei.agconnect'
+
+apply plugin: 'com.novoda.bintray-release'
+
 
 group 'com.tan'
-ext.artifactIdcus='pushlib'
-version '0.15'
+ext.artifactIdcus = 'pushlib'
+version '0.20'
+
+publish {
+    userOrg = 'tanweis'
+    repoName = 'tlib'
+    groupId = group
+    artifactId = artifactIdcus
+    publishVersion = version
+    desc = 'push lib'
+}
 
 //maven-publish
-task sourceJar(type:Jar){
+task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier "sources"
 }
@@ -23,8 +36,7 @@ publishing {
                 def dependenciesNode = asNode().appendNode('dependencies')
                 //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
                 configurations.findByName("implementation").allDependencies.each {
-                    if(it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null)
-                    {
+                    if (it.group != null && (it.name != null || "unspecified".equals(it.name)) && it.version != null) {
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', it.group)
                         dependencyNode.appendNode('artifactId', it.name)
@@ -42,13 +54,12 @@ publishing {
 }
 
 android {
-    compileSdkVersion 28
-
+    compileSdkVersion 29
 
 
     defaultConfig {
-        minSdkVersion 20
-        targetSdkVersion 28
+        minSdkVersion 21
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
@@ -63,33 +74,51 @@ android {
         }
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
+}
+
+buildscript {
+//    dependencies {
+//        classpath 'com.huawei.agconnect:agcp:1.0.0.300'
+//    }
+    repositories {
+        google()
+        jcenter()
+        maven { url 'http://developer.huawei.com/repo/' }
+    }
+
+
+
 }
 
 repositories {
-    maven {url 'http://developer.huawei.com/repo/'}
-    maven {url '/Users/tan/Documents/maven/repo'}
+    maven { url 'http://developer.huawei.com/repo/' }
+    maven { url '/Users/tan/Documents/maven/repo' }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation 'com.android.support:appcompat-v7:28.0.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+//    testImplementation 'junit:junit:4.12'
+//    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+//    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
 
     //信鸽jar，不包含厂商通道
-    implementation  'com.tencent.xinge:xinge:4.0.3-Release'
+    implementation 'com.tencent.xinge:xinge:4.0.3-Release'
     //jg包
-    implementation'com.tencent.jg:jg:1.1'
+    implementation 'com.tencent.jg:jg:1.1'
     //wup包
     implementation 'com.tencent.wup:wup:1.0.0.E-release'
     //mid包
     implementation 'com.tencent.mid:mid:4.0.7'
 
-    //huawei push
-    implementation 'com.huawei.android.hms:push:2.6.1.301'
     //meizu
     implementation 'com.meizu.flyme.internet:push-internal:3.7.3@aar'
+
+    implementation 'com.huawei.hms:push:3.0.3.301'
 }
